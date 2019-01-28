@@ -118,6 +118,7 @@
   },
   "dependencies": {
     "fast-clone": "^1.5.3",
-    "fast-copy": "^1.2.4"
+    "fast-copy": "^1.2.4",
+    "fast-equals": "^1.6.2"
   }
 }

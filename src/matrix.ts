@@ -4,24 +4,49 @@ export class Matrix<T extends string | number> {
   private _values: T[][];
   private _col: number;
   private _row: number;
-  constructor()
-  constructor(col: number, row: number)
-  constructor(col?: number, row?: number) {
+  private _rowKeys: string[] = [];
+  private _colKeys: string[] = [];
+
+  public constructor()
+  public constructor(col: number, row: number, defaultValue?: T)
+  public constructor(col?: number, row?: number, defaultValue?: T) {
     this._col = col || 0;
     this._row = row || 0;
 
-    this._values = new Array(col);
+    this._values = new Array(this._col);
+    for (let i = 0; i < this._col; i++) {
+      const a = new Array<T>(this._row);
+      this._values[i] = a;
+    }
+    if (defaultValue === undefined) {
+      return;
+    }
+    for (const arr of this._values) {
+      arr.clear(defaultValue);
+    }
   }
-  public get colomnCount(): number {
+
+  public get col(): number {
     return this._col;
   }
-  public get rowCount(): number {
+  public get row(): number {
     return this._row;
   }
+
   public print(): void {
     for (const arr of this._values) {
       console.log(arr);
     }
+  }
+
+  public setRowKeys(keys: string[]): Matrix<T> {
+    this._rowKeys = copy(keys);
+    return this;
+  }
+
+  public setColKeys(keys: string[]): Matrix<T> {
+    this._colKeys = copy(keys);
+    return this;
   }
 
   public setValues(values: T[][]): Matrix<T> {
@@ -38,11 +63,13 @@ export class Matrix<T extends string | number> {
     }
     this._row = length;
     this._col = values.length;
+    this._rowKeys = new Array<string>(length);
+    this._colKeys = new Array<string>(length);
     this._values = copy(values);
     return this;
   }
 
-  public set(col: number, row: number, value: T): Matrix<T> {
+  public setValue(col: number, row: number, value: T): Matrix<T> {
     this._values[col][row] = copy(value);
     return this;
   }
@@ -59,5 +86,9 @@ export class Matrix<T extends string | number> {
   // TODO
   public normalize(): Matrix<T> {
     return this;
+  }
+  public toJSON(): object {
+    console.log(this._rowKeys, this._colKeys);
+    return {};
   }
 }
