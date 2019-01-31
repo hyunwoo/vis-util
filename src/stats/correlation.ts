@@ -1,4 +1,4 @@
-import { Matrix } from '../struct';
+import { Matrix } from '../matrix';
 
 export default {
   pearson(matrix: Matrix<number>) {

@@ -1,29 +1,33 @@
+import './type.extension';
 import copy from 'fast-copy';
+import { Exception } from 'handlebars';
+import _ from 'lodash';
 
 export class Matrix<T extends string | number> {
-  private _values: T[][];
+  private arrs: T[][];
   private _col: number;
   private _row: number;
   private _rowKeys: string[] = [];
   private _colKeys: string[] = [];
 
   public constructor()
-  public constructor(col: number, row: number, defaultValue?: T)
-  public constructor(col?: number, row?: number, defaultValue?: T) {
-    this._col = col || 0;
+  public constructor(row: number, col: number, defaultValue?: T)
+  public constructor(row?: number, col?: number, defaultValue?: T) {
     this._row = row || 0;
+    this._col = col || 0;
 
-    this._values = new Array(this._col);
-    for (let i = 0; i < this._col; i++) {
-      const a = new Array<T>(this._row);
-      this._values[i] = a;
+    this.arrs = new Array(this._row);
+    for (let i = 0; i < this._row; i++) {
+      const a = new Array<T>(this._col);
+      this.arrs[i] = a;
     }
     if (defaultValue === undefined) {
       return;
     }
-    for (const arr of this._values) {
+    for (const arr of this.arrs) {
       arr.clear(defaultValue);
     }
+    this.initKeys();
   }
 
   public get col(): number {
@@ -34,17 +38,24 @@ export class Matrix<T extends string | number> {
   }
 
   public print(): void {
-    for (const arr of this._values) {
-      console.log(arr);
+    console.log('\t', this._colKeys);
+    for (let i = 0; i < this.arrs.length; i++) {
+      console.log(`${this._rowKeys[i]}\t`, this.arrs[i]);
     }
   }
 
   public setRowKeys(keys: string[]): Matrix<T> {
+    if (keys.length !== this._row) {
+      throw new Error('input ROW Keys length is diffrent from matrix row count');
+    }
     this._rowKeys = copy(keys);
     return this;
   }
 
   public setColKeys(keys: string[]): Matrix<T> {
+    if (keys.length !== this._col) {
+      throw new Error('input COL Keys length is diffrent from matrix col count');
+    }
     this._colKeys = copy(keys);
     return this;
   }
@@ -61,34 +72,63 @@ export class Matrix<T extends string | number> {
         );
       }
     }
-    this._row = length;
-    this._col = values.length;
-    this._rowKeys = new Array<string>(length);
-    this._colKeys = new Array<string>(length);
-    this._values = copy(values);
+    this._row = values.length;
+    this._col = length;
+    this.arrs = copy(values);
+    this.initKeys();
     return this;
   }
 
   public setValue(col: number, row: number, value: T): Matrix<T> {
-    this._values[col][row] = copy(value);
+    if (col >= this._col || row >= this._row) {
+      throw new Error('Index Overflow Exception (col or row)');
+    }
+    this.arrs[col][row] = copy(value);
     return this;
   }
 
   public get values() {
-    return this._values;
+    return this.arrs;
   }
 
   // TODO
   public transpose(): Matrix<T> {
     return this;
   }
+  public mul(value: T): Matrix<T> {
+    if (typeof value === 'string') {
+      throw new Error('String matrix is not support multiply');
+    }
+    // @ts-ignore
+    this.arrs = this.arrs.map(arr => arr.map(val => val * value));
+    return this;
+  }
+  public add(value: T): Matrix<T> {
+    if (typeof value === 'string') {
+      throw new Error('String matrix is not support add');
+    }
+    // @ts-ignore
+    this.arrs = this.arrs.map(arr => arr.map(val => val + value));
+    return this;
+  }
 
   // TODO
   public normalize(): Matrix<T> {
+    const max = _.chain(this.arrs)
+      .map(arr => _.max(arr))
+      .max()
+      .value();
+    // @ts-ignore
+    this.arrs = this.arrs.map(arr => arr.map(val => val / max));
     return this;
   }
   public toJSON(): object {
     console.log(this._rowKeys, this._colKeys);
     return {};
+  }
+
+  private initKeys(): void {
+    this._colKeys = new Array<string>(this._col).clear('');
+    this._rowKeys = new Array<string>(this._row).clear('');
   }
 }
