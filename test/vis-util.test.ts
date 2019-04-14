@@ -20,5 +20,6 @@ describe('Matrix Test', () => {
     const row = a.row;
     expect(col).toEqual(2);
     expect(row).toEqual(2);
+    
   });
 });
